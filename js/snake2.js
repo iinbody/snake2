@@ -4,34 +4,50 @@ $(document).ready(function(){
     var canvas = $("#canvas")[0];
     var ctx = canvas.getContext("2d");
     var w = $("#canvas").width();
-    var h = $("#canvas").height();
-
+    var scoreArea = 40;
+    var h = $("#canvas").height() - scoreArea;
     var cw = 10;
     var foods = [];
-    var score;
+    var score = [0,0];
     var snakes = [];
+    var startButton = document.getElementById("startButton");
+    startButton.addEventListener("click", function(){startGame()});
+
 
     var startGame = function() {
-        snakes[0] = new newSnake(10,1,5,"right");
-        createFood();createFood();
+        startButton.style.display = 'none';
+        restartGame();
+
         if(typeof game_loop != "undefined") {
             clearInterval(game_loop);
         }
         game_loop = setInterval(doGame, 60);
     }
 
+    var restartGame = function(){
+        console.log("restarting");
+        snakes = [];
+        foods = [];
+        createFood();createFood();
+        snakes[0] = new newSnake(10,1,5,"right","blue","red");
+        // snakes[1] = new newSnake(35,44,5,"left","purple","teal");
+    }
+
     var doGame = function(){
         paint();
         moveSnakes();
+        paintScores();
 
     }
 
-    var newSnake = function(x,y,length,direction){
+    var newSnake = function(x,y,length,direction,color1,color2){
         this.x = x;
         this.y = y;
         this.length = length;
         this.direction = direction;
         this.body = [{x:x, y:y}];
+        this.color1 = color1;
+        this.color2 = color2;
         if (this.direction === "right") {
             for (var i=1; i<this.length; i++){
                 this.body.push({x:x-i,y:y});
@@ -56,37 +72,35 @@ $(document).ready(function(){
     }
 
     var paint = function() {
-        //painting canvas on every frame
+        //paint canvas
         ctx.fillStyle = "white";
         ctx.fillRect(0, 0, w, h);
         ctx.strokeStyle = "black";
         ctx.strokeRect(0, 0, w, h);
-
-        //game over conditions
-        /*if(nx === -1 || nx == w/cw || ny === -1 || ny === h/cw || checkCollision(nx,ny,snakeArray)) {
-            startGame();
-            console.log("collision");
-            return; // why is return necessary?
-        }*/
-
         //paint the snakes
         for(var i=0; i<snakes.length; i++){
             for(var j=0; j<snakes[i].body.length; j++){
                 var c = snakes[i].body[j];
                 if (j === 0){
-                    paintCell(c.x,c.y,"red");
+                    paintCell(c.x, c.y, snakes[i].color2);
                 }else{
-                    paintCell(c.x, c.y);
+                    paintCell(c.x, c.y, snakes[i].color1);
                 }
             }
         }
-
+        //paint the food
         for(var i=0; i<foods.length; i++){
             paintCell(foods[i].x,foods[i].y,"green");
         }
-        var scoreText = "Score: "+score;
+    }
+
+    var paintScores = function(){
+        ctx.fillStyle = "grey";
+        ctx.fillRect(0, h, w, scoreArea);
         ctx.fillStyle = "blue";
-        ctx.fillText(scoreText, 5, h-5);
+        ctx.font="30px sans-serif";
+        ctx.fillText("Player 1: "+score[0], 10, h+scoreArea-10);
+        ctx.fillText("Player 2: "+score[1], w-150, h+scoreArea-10);
     }
 
     var printSnake = function(num){
@@ -97,7 +111,6 @@ $(document).ready(function(){
     }
 
     var moveSnakes = function() {
-        //console.log("startingmove:");printSnake();
         if(map[87] && snakes[0].direction !== "down"){
             snakes[0].direction = "up";
         }else if(map[83] && snakes[0].direction !== "up"){
@@ -107,20 +120,19 @@ $(document).ready(function(){
         }else if(map[68] && snakes[0].direction !== "left"){
             snakes[0].direction = "right";
         }
-        /*if(map[38]){
+        if(map[38] && snakes[1].direction !== "down"){
             snakes[1].direction = "up";
-        }else if(map[40]){
+        }else if(map[40] && snakes[1].direction !== "up"){
             snakes[1].direction = "down";
-        }else if(map[37]){
+        }else if(map[37] && snakes[1].direction !== "right"){
             snakes[1].direction = "left";
-        }else if(map[39]){
+        }else if(map[39] && snakes[1].direction !== "left"){
             snakes[1].direction = "right";
-        }*/
+        }
 
         for (var i=0; i<snakes.length; i++){
-            var newHead = snakes[i].body.pop();
-            //console.log("removedtail: ");printSnake();
-            //console.log(newHead);
+            var tail = snakes[i].body.pop();
+            var newHead = {x:tail.x, y:tail.y};
             if (snakes[i].direction === "right"){
                 newHead.x = snakes[i].body[0].x + 1;
                 newHead.y = snakes[i].body[0].y;
@@ -134,21 +146,19 @@ $(document).ready(function(){
                 newHead.x = snakes[i].body[0].x;
                 newHead.y = snakes[i].body[0].y + 1;
             }
-            //console.log("movednewhead: ");printSnake();
-            //console.log(newHead);
+
+            if (newHead.x === -1 || newHead.x === w/cw  || newHead.y === -1 || newHead.y === h/cw){
+                //newHead = {x:10, y:2};
+                restartGame();
+                return;
+            }
             snakes[i].body.unshift(newHead);
-            //console.log("justmoved: ");printSnake();
             for (var j=0; j<foods.length; j++){
-                //console.log("eat?");
                 if (foods[j].x === snakes[i].body[0].x && foods[j].y === snakes[i].body[0].y){
                     //snakes[i].body.push(snakes[i].body[snakes[i].body.length]); //duplicate the tail of the snake
-                    //console.log("beforeeat: ");printSnake();
                     snakes[i].eatFood();
                     foods.splice(j,1);
                     createFood();
-                    console.log(foods);
-                    console.log("eat=======================================================");
-                    console.log("aftereat: ");printSnake();
                 }
             }
         }
@@ -178,6 +188,5 @@ $(document).ready(function(){
         map[e.keyCode] = e.type === 'keydown'; //don't understand
     }
 
-    startGame();
+    //startGame();
 })
-
