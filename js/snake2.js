@@ -30,7 +30,7 @@ $(document).ready(function(){
         foods = [];
         createFood();createFood();
         snakes[0] = new newSnake(10,1,5,"right","blue","red");
-        // snakes[1] = new newSnake(35,44,5,"left","purple","teal");
+        snakes[1] = new newSnake(34,43,5,"left","purple","teal");
     }
 
     var doGame = function(){
@@ -133,6 +133,7 @@ $(document).ready(function(){
         for (var i=0; i<snakes.length; i++){
             var tail = snakes[i].body.pop();
             var newHead = {x:tail.x, y:tail.y};
+            // console.log("Snake "+i+": ",newHead.x,newHead.y);
             if (snakes[i].direction === "right"){
                 newHead.x = snakes[i].body[0].x + 1;
                 newHead.y = snakes[i].body[0].y;
@@ -147,11 +148,14 @@ $(document).ready(function(){
                 newHead.y = snakes[i].body[0].y + 1;
             }
 
+            newHead.x = newHead.x.mod(w/cw);
+            newHead.y = newHead.y.mod(h/cw);
+            /*
             if (newHead.x === -1 || newHead.x === w/cw  || newHead.y === -1 || newHead.y === h/cw){
                 //newHead = {x:10, y:2};
                 restartGame();
                 return;
-            }
+            }*/
             snakes[i].body.unshift(newHead);
             for (var j=0; j<foods.length; j++){
                 if (foods[j].x === snakes[i].body[0].x && foods[j].y === snakes[i].body[0].y){
@@ -186,6 +190,10 @@ $(document).ready(function(){
         e = e || event; // to deal with IE
         console.log(e.keyCode);
         map[e.keyCode] = e.type === 'keydown'; //don't understand
+    }
+
+    Number.prototype.mod = function(n) {
+        return ((this%n)+n)%n;
     }
 
     //startGame();
