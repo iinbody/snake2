@@ -111,6 +111,8 @@ $(document).ready(function(){
     }
 
     var moveSnakes = function() {
+
+        //direction of snakes
         if(map[87] && snakes[0].direction !== "down"){
             snakes[0].direction = "up";
         }else if(map[83] && snakes[0].direction !== "up"){
@@ -130,6 +132,7 @@ $(document).ready(function(){
             snakes[1].direction = "right";
         }
 
+        //pop off tail and put it in incremented head position
         for (var i=0; i<snakes.length; i++){
             var tail = snakes[i].body.pop();
             var newHead = {x:tail.x, y:tail.y};
@@ -150,19 +153,28 @@ $(document).ready(function(){
 
             newHead.x = newHead.x.mod(w/cw);
             newHead.y = newHead.y.mod(h/cw);
-            /*
+            /*//turn wrap off
             if (newHead.x === -1 || newHead.x === w/cw  || newHead.y === -1 || newHead.y === h/cw){
                 //newHead = {x:10, y:2};
                 restartGame();
                 return;
             }*/
             snakes[i].body.unshift(newHead);
+            //check for food collision
             for (var j=0; j<foods.length; j++){
                 if (foods[j].x === snakes[i].body[0].x && foods[j].y === snakes[i].body[0].y){
                     //snakes[i].body.push(snakes[i].body[snakes[i].body.length]); //duplicate the tail of the snake
                     snakes[i].eatFood();
                     foods.splice(j,1);
                     createFood();
+                }
+            }
+
+            //check for collision with other snake
+            for(var j=0; j<snakes.length; j++){
+                if(checkCollision(j)){
+                    console.log("collide");
+                    restartGame();
                 }
             }
         }
@@ -176,10 +188,13 @@ $(document).ready(function(){
         ctx.strokeRect(x*cw, y*cw, cw, cw);
     }
 
-    var checkCollision = function(x, y, array) {
-        for(var i = 0; i<array.length-1; i++) {
-            if(array[i].x === x && array[i].y === y) {
-                return true;
+    //check if snake collides
+    var checkCollision = function(numSnake) {
+        for(var i = 0; i<snakes.length; i++){
+            for(var j = 0; j<snakes[i].body.length; j++) {
+                if(snakes[numSnake].body[0].x === snakes[i].body[j].x && snakes[numSnake].body[0].y === snakes[i].body[j].y  && snakes[numSnake].body[0] !== snakes[i].body[j] ) {
+                    return true;
+                }
             }
         }
     }
