@@ -174,6 +174,7 @@ $(document).ready(function(){
             for(var j=0; j<snakes.length; j++){
                 if(checkCollision(j)){
                     console.log("collide");
+                    score[1-j]++;
                     restartGame();
                 }
             }
@@ -192,8 +193,15 @@ $(document).ready(function(){
     var checkCollision = function(numSnake) {
         for(var i = 0; i<snakes.length; i++){
             for(var j = 0; j<snakes[i].body.length; j++) {
-                if(snakes[numSnake].body[0].x === snakes[i].body[j].x && snakes[numSnake].body[0].y === snakes[i].body[j].y  && snakes[numSnake].body[0] !== snakes[i].body[j] ) {
-                    return true;
+                if(snakes[numSnake].body[0].x === snakes[i].body[j].x && snakes[numSnake].body[0].y === snakes[i].body[j].y && snakes[numSnake].body[0] !== snakes[i].body[j] ) {
+                    if(j===0){//collided with head of other snake
+                        console.log("restarting");
+                        restartGame();
+                        return;
+                    }else{
+                        console.log("coltrue"+numSnake+i);
+                        return true;
+                    }
                 }
             }
         }
