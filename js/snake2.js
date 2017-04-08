@@ -8,7 +8,7 @@ $(document).ready(function(){
     var h = $("#canvas").height() - scoreArea;
     var cw = 10;
     var foods = [];
-    var score = [0,0];
+    var score = [];
     var snakes = [];
     var startButton = document.getElementById("startButton");
     startButton.addEventListener("click", function(){startGame()});
@@ -16,6 +16,7 @@ $(document).ready(function(){
 
     var startGame = function() {
         startButton.style.display = 'none';
+        score = [0,0];
         restartGame();
 
         if(typeof game_loop != "undefined") {
@@ -31,6 +32,13 @@ $(document).ready(function(){
         createFood();createFood();
         snakes[0] = new newSnake(10,1,5,"right","blue","red");
         snakes[1] = new newSnake(34,43,5,"left","purple","teal");
+    }
+
+    var gameOver = function(player){
+        clearInterval(game_loop);
+        ctx.fillText("Player "+player+" WINS!", w/2-100, h/2-50);
+        startButton.innerHTML = 'Restart!';
+        startButton.style.display = 'inline';
     }
 
     var doGame = function(){
@@ -61,6 +69,7 @@ $(document).ready(function(){
             //this.body.push(this.body[this.length-1]);
             this.body[this.length] = {x:this.body[this.length-1].x, y:this.body[this.length-1].y};
             this.length++;
+            return this.length;
         }
     }
 
@@ -164,7 +173,8 @@ $(document).ready(function(){
             for (var j=0; j<foods.length; j++){
                 if (foods[j].x === snakes[i].body[0].x && foods[j].y === snakes[i].body[0].y){
                     //snakes[i].body.push(snakes[i].body[snakes[i].body.length]); //duplicate the tail of the snake
-                    snakes[i].eatFood();
+                    if(snakes[i].eatFood() === 15){score[i]++;restartGame()}
+                    if(score[i] === 7){gameOver(i+1);return;}
                     foods.splice(j,1);
                     createFood();
                 }
@@ -173,8 +183,9 @@ $(document).ready(function(){
             //check for collision with other snake
             for(var j=0; j<snakes.length; j++){
                 if(checkCollision(j)){
-                    console.log("collide");
                     score[1-j]++;
+                    console.log(score);
+                    if (score[1-j] === 7) {gameOver(2-j);return;}
                     restartGame();
                 }
             }
@@ -195,11 +206,9 @@ $(document).ready(function(){
             for(var j = 0; j<snakes[i].body.length; j++) {
                 if(snakes[numSnake].body[0].x === snakes[i].body[j].x && snakes[numSnake].body[0].y === snakes[i].body[j].y && snakes[numSnake].body[0] !== snakes[i].body[j] ) {
                     if(j===0){//collided with head of other snake
-                        console.log("restarting");
                         restartGame();
                         return;
                     }else{
-                        console.log("coltrue"+numSnake+i);
                         return true;
                     }
                 }
