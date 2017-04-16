@@ -45,7 +45,6 @@ $(document).ready(function(){
         paint();
         moveSnakes();
         paintScores();
-
     }
 
     var newSnake = function(x,y,length,direction,color1,color2){
@@ -66,7 +65,6 @@ $(document).ready(function(){
             }
         }
         this.eatFood = function(){
-            //this.body.push(this.body[this.length-1]);
             this.body[this.length] = {x:this.body[this.length-1].x, y:this.body[this.length-1].y};
             this.length++;
             return this.length;
@@ -145,7 +143,6 @@ $(document).ready(function(){
         for (var i=0; i<snakes.length; i++){
             var tail = snakes[i].body.pop();
             var newHead = {x:tail.x, y:tail.y};
-            // console.log("Snake "+i+": ",newHead.x,newHead.y);
             if (snakes[i].direction === "right"){
                 newHead.x = snakes[i].body[0].x + 1;
                 newHead.y = snakes[i].body[0].y;
@@ -162,19 +159,13 @@ $(document).ready(function(){
 
             newHead.x = newHead.x.mod(w/cw);
             newHead.y = newHead.y.mod(h/cw);
-            /*//turn wrap off
-            if (newHead.x === -1 || newHead.x === w/cw  || newHead.y === -1 || newHead.y === h/cw){
-                //newHead = {x:10, y:2};
-                restartGame();
-                return;
-            }*/
+            //hitWalls();
             snakes[i].body.unshift(newHead);
             //check for food collision
             for (var j=0; j<foods.length; j++){
                 if (foods[j].x === snakes[i].body[0].x && foods[j].y === snakes[i].body[0].y){
-                    //snakes[i].body.push(snakes[i].body[snakes[i].body.length]); //duplicate the tail of the snake
                     if(snakes[i].eatFood() === 15){score[i]++;restartGame()}
-                    if(score[i] === 7){gameOver(i+1);return;}
+                    if(score[i] === 7){gameOver(i+1);return;}//need to clean up
                     foods.splice(j,1);
                     createFood();
                 }
@@ -185,7 +176,7 @@ $(document).ready(function(){
                 if(checkCollision(j)){
                     score[1-j]++;
                     console.log(score);
-                    if (score[1-j] === 7) {gameOver(2-j);return;}
+                    if (score[1-j] === 7) {gameOver(2-j);return;}//need to clean up
                     restartGame();
                 }
             }
@@ -216,6 +207,13 @@ $(document).ready(function(){
         }
     }
 
+    var hitWalls = function(){//turn wrap off
+            if (newHead.x === -1 || newHead.x === w/cw  || newHead.y === -1 || newHead.y === h/cw){
+                restartGame();
+                return;
+            }
+        }
+
     //improved controls
     var map = [];
     onkeydown = onkeyup = function(e){
@@ -224,9 +222,8 @@ $(document).ready(function(){
         map[e.keyCode] = e.type === 'keydown'; //don't understand
     }
 
-    Number.prototype.mod = function(n) {
+    Number.prototype.mod = function(n) {//javascript modulus bug
         return ((this%n)+n)%n;
     }
 
-    //startGame();
 })
